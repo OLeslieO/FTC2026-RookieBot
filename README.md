@@ -10,6 +10,15 @@ To use this Android Studio project, you will need Android Studio Ladybug (2024.2
 
 To program your robot in Blocks or OnBot Java, you do not need Android Studio.
 
+### Local Android SDK configuration
+The Android SDK path is specific to each computer and must not be committed to Git. After cloning, open the project in Android Studio and let it create the root `local.properties` file automatically. For command-line builds, create that file locally with your own SDK path, for example:
+
+```properties
+sdk.dir=/your/local/path/to/Android/sdk
+```
+
+`local.properties`, Android Studio state, Gradle caches, and generated build output are ignored by this repository.
+
 ## Getting Started
 If you are new to robotics or new to the *FIRST* Tech Challenge, then you should consider reviewing the [FTC Blocks Tutorial](https://ftc-docs.firstinspires.org/programming_resources/blocks/Blocks-Tutorial.html) to get familiar with how to use the control system:
 

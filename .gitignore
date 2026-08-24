@@ -1,0 +1,18 @@
+# Local Android SDK configuration (machine-specific absolute path)
+local.properties
+
+# Gradle and Android build output
+.gradle/
+**/build/
+
+# Android Studio / IntelliJ local project state
+.idea/
+*.iml
+
+# Native build output
+.cxx/
+.externalNativeBuild/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
