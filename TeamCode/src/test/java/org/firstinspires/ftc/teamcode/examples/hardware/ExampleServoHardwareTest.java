@@ -29,4 +29,12 @@ public class ExampleServoHardwareTest {
         assertThrows(IllegalArgumentException.class,()->
                 ExampleServoHardware.validateConfiguration("releaseServo",0.5,0.5));
     }
+
+    @Test
+    public void rejectsSignedZeroPositionsAsIdentical() {
+        assertThrows(IllegalArgumentException.class,()->
+                ExampleServoHardware.validateConfiguration("releaseServo",-0.0,0.0));
+        assertThrows(IllegalArgumentException.class,()->
+                ExampleServoHardware.validateConfiguration("releaseServo",0.0,-0.0));
+    }
 }

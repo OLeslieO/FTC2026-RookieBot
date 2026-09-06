@@ -55,10 +55,10 @@ TeamCode/src/main/java/org/firstinspires/ftc/teamcode/
 
 ## Pedro 封装
 
-`pedroPathing/Constants.java` 只展示 `Constants.createFollower(hardwareMap)` 工厂入口。它使用 Pedro 2.1.2 的 `FollowerBuilder`，并以注释明确说明：
+`pedroPathing/Constants.java` 只展示 `Constants.createFollower(hardwareMap)` 工厂入口。通用仓库没有合法的 drivetrain/localizer 配置，因此默认工厂会抛出带明确说明的异常，而不会调用无完整配置的 `FollowerBuilder.build()`。注释明确说明：
 
-- 文件中的默认构造只用于编译和结构演示；
-- 在允许实车行驶前，必须用 Pedro Quickstart 生成并在当前机器人上完成 drivetrain/localizer 配置与调参；
+- 默认工厂有意保持不可运行，不使用布尔开关暴露无效构造；
+- 在允许实车行驶前，队伍必须替换抛出异常的实现，用 Pedro Quickstart 为当前机器人完整配置 drivetrain 和 localizer，并完成调参；
 - 不得把 FTC16093 或其他机器人的常量复制为已验证配置。
 
 Auto 只依赖这个工厂方法，不在比赛流程中散落 drivetrain/localizer 构造细节。
@@ -74,15 +74,18 @@ Auto 只依赖这个工厂方法，不在比赛流程中散落 drivetrain/locali
 
 ## Auto 调用流程
 
-状态机使用具名 enum：
+状态机使用与源码一致的具名 enum：
 
 ```text
-PRELOAD_CLOSED
-  → DRIVE_TO_ACTION
-  → OPEN_SERVO
-  → WAIT_FOR_SERVO
-  → DRIVE_TO_PARK
-  → DONE
+SAFETY_STOP（默认/配置失败）
+  └─ 配置完成 → READY
+                  └─ start(): close → DRIVE_TO_ACTION
+                                           └─ 路径完成: open → WAIT_FOR_SERVO
+                                                                    └─ 等待完成 → DRIVE_TO_PARK
+                                                                                         └─ 路径完成 → DONE
+
+任意运行时异常 → SAFETY_STOP
+stop() → STOPPED
 ```
 
 - `init()`：验证占位配置；验证通过后创建 hardware wrapper、Follower 和 PathChain。
@@ -97,7 +100,7 @@ PRELOAD_CLOSED
 代码注释应在调用点解释以下方法：
 
 - `hardwareMap.get(Servo.class,name)`：按照 Robot Configuration 名称取得 Servo；
-- `Constants.createFollower(hardwareMap)`：集中创建 Pedro Follower；
+- `Constants.createFollower(hardwareMap)`：集中创建 Pedro Follower；通用示例默认明确拒绝创建，直到队伍提供完整 drivetrain/localizer 配置；
 - `follower.setStartingPose(startPose)`：声明初始化时机器人的真实场地 Pose；
 - `follower.pathBuilder()` / `addPath(...)` / `setLinearHeadingInterpolation(...)` / `build()`：创建直线路径；
 - `follower.followPath(path,maxPower,false)`：开始非阻塞路径跟随；
@@ -108,7 +111,7 @@ PRELOAD_CLOSED
 
 ## 错误处理与 telemetry
 
-配置校验失败时，示例进入安全锁定并显示具体原因。运行时异常也进入安全停止，不继续推进状态。Telemetry 至少包括：
+配置校验失败时，示例进入安全锁定并显示具体原因。运行时异常也进入安全停止，不继续推进状态。Follower/localizer 查询使用 best-effort 快照；查询异常只显示 telemetry 不可用，不会从 `SAFETY_STOP` 再抛出。Telemetry 至少包括：
 
 - `configuration complete`
 - `safety locked`
@@ -127,7 +130,8 @@ PRELOAD_CLOSED
 
 1. Gradle Sync 能解析 Pedro 2.1.2；
 2. `:TeamCode:assembleDebug` 成功；
-3. 静态检查确认示例带 `@Disabled`、默认 `CONFIGURATION_COMPLETE=false`，且没有 FTC16093 的机器人专属数值；
-4. 静态检查确认 `loop()` 调用 `follower.update()`，状态推进依赖 `isBusy()`，Servo 由 hardware wrapper 控制。
+3. 单元测试确认示例带 `@Disabled`、默认 `CONFIGURATION_COMPLETE=false`，且默认 Follower 工厂明确拒绝无完整配置的构造；
+4. 单元测试确认 Follower/localizer telemetry 查询异常不会逃逸，并确认 Servo 端点与 Pose 坐标中的 `-0.0` 和 `0.0` 等价；
+5. 静态检查确认没有 FTC16093 的机器人专属数值，且 `loop()` 调用 `follower.update()`、状态推进依赖 `isBusy()`、Servo 由 hardware wrapper 控制。
 
 软件构建成功不等于实车验证。任何人复制模板后，都必须依次验证 Robot Configuration、Servo 单独动作、Localization Test、低功率短路径，最后才允许组合 Auto。

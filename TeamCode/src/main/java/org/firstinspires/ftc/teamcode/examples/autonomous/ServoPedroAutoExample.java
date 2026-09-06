@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 import org.firstinspires.ftc.teamcode.examples.hardware.ExampleServoHardware;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -37,6 +39,45 @@ public final class ServoPedroAutoExample extends OpMode {
 
     private enum LastServoCommand {
         NONE,CLOSED,OPEN
+    }
+
+    static final class FollowerTelemetrySnapshot {
+        private final boolean available;
+        private final boolean busy;
+        private final Pose pose;
+        private final String failure;
+
+        private FollowerTelemetrySnapshot(
+                boolean available,boolean busy,Pose pose,String failure) {
+            this.available=available;
+            this.busy=busy;
+            this.pose=pose;
+            this.failure=failure;
+        }
+
+        static FollowerTelemetrySnapshot available(boolean busy,Pose pose) {
+            return new FollowerTelemetrySnapshot(true,busy,pose,"none");
+        }
+
+        static FollowerTelemetrySnapshot unavailable(RuntimeException exception) {
+            return new FollowerTelemetrySnapshot(false,false,null,describe(exception));
+        }
+
+        boolean isAvailable() {
+            return available;
+        }
+
+        boolean isBusy() {
+            return busy;
+        }
+
+        Pose getPose() {
+            return pose;
+        }
+
+        String getFailure() {
+            return failure;
+        }
     }
 
     private final List<String> configurationIssues=new ArrayList<>();
@@ -192,10 +233,10 @@ public final class ServoPedroAutoExample extends OpMode {
         }
     }
 
-    private boolean samePosition(Pose first,Pose second) {
+    static boolean samePosition(Pose first,Pose second) {
         return first!=null&&second!=null
-                &&Double.compare(first.getX(),second.getX())==0
-                &&Double.compare(first.getY(),second.getY())==0;
+                &&first.getX()==second.getX()
+                &&first.getY()==second.getY();
     }
 
     private void transitionTo(AutoState next) {
@@ -211,8 +252,20 @@ public final class ServoPedroAutoExample extends OpMode {
         breakFollowingBestEffort();
     }
 
-    private String describe(RuntimeException exception) {
+    private static String describe(RuntimeException exception) {
         return exception.getClass().getSimpleName()+": "+exception.getMessage();
+    }
+
+    static FollowerTelemetrySnapshot captureFollowerTelemetry(
+            BooleanSupplier busySupplier,Supplier<Pose> poseSupplier) {
+        try {
+            boolean busy=busySupplier.getAsBoolean();
+            Pose pose=poseSupplier.get();
+            if(pose==null) throw new IllegalStateException("Follower returned no pose");
+            return FollowerTelemetrySnapshot.available(busy,pose);
+        } catch(RuntimeException exception) {
+            return FollowerTelemetrySnapshot.unavailable(exception);
+        }
     }
 
     private void breakFollowingBestEffort() {
@@ -232,10 +285,16 @@ public final class ServoPedroAutoExample extends OpMode {
         telemetry.addData("runtime failure",runtimeFailure);
         for(String issue:configurationIssues) telemetry.addLine("CONFIG: "+issue);
         if(follower!=null) {
-            telemetry.addData("follower busy",follower.isBusy());
-            telemetry.addData("x (in)",follower.getPose().getX());
-            telemetry.addData("y (in)",follower.getPose().getY());
-            telemetry.addData("heading (rad)",follower.getPose().getHeading());
+            FollowerTelemetrySnapshot snapshot=
+                    captureFollowerTelemetry(follower::isBusy,follower::getPose);
+            if(snapshot.isAvailable()) {
+                telemetry.addData("follower busy",snapshot.isBusy());
+                telemetry.addData("x (in)",snapshot.getPose().getX());
+                telemetry.addData("y (in)",snapshot.getPose().getY());
+                telemetry.addData("heading (rad)",snapshot.getPose().getHeading());
+            } else {
+                telemetry.addData("follower telemetry","unavailable: "+snapshot.getFailure());
+            }
         }
         telemetry.addData("last servo command",lastServoCommand);
         telemetry.addData("state elapsed (s)",stateTimer.seconds());

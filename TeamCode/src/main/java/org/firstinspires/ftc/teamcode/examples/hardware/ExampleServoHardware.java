@@ -31,7 +31,7 @@ public final class ExampleServoHardware {
         if(!isServoPosition(closedPosition)||!isServoPosition(openPosition)) {
             throw new IllegalArgumentException("Servo positions must be finite values in [0,1]");
         }
-        if(Double.compare(closedPosition,openPosition)==0) {
+        if(closedPosition==openPosition) {
             throw new IllegalArgumentException("closed and open Servo positions must differ");
         }
     }

@@ -1,22 +1,23 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.follower.FollowerConstants;
-import com.pedropathing.ftc.FollowerBuilder;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 /**
  * Teaching-only Pedro construction boundary.
  *
- * <p>This default FollowerConstants instance exists so the example demonstrates the API and
- * compiles. It is not a tuned drivetrain/localizer configuration. Before any real drive test,
- * replace this factory with the current robot's reviewed Pedro Quickstart constants and complete
+ * <p>The generic repository deliberately supplies no drivetrain or localizer. Before any real
+ * drive test, replace the throwing body of {@link #createFollower(HardwareMap)} with the current
+ * robot's reviewed Pedro Quickstart configuration, including both components and completed
  * localization tuning. Never copy another robot's directions, offsets, mass, PID, or constraints.
  */
 public final class Constants {
     private Constants() {}
 
     public static Follower createFollower(HardwareMap hardwareMap) {
-        return new FollowerBuilder(new FollowerConstants(),hardwareMap).build();
+        throw new IllegalStateException(
+                "Pedro Follower is intentionally unavailable: supply the current robot's "
+                        +"complete drivetrain and localizer configuration in Constants.createFollower()"
+                        +" before enabling this teaching example");
     }
 }
