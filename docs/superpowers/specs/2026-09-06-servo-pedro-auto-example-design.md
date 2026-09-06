@@ -1,5 +1,7 @@
 # Servo + Pedro Pathing Auto 安全占位示例设计
 
+> 历史设计：用户随后要求简化为普通 OpMode 和单个 Hardware 封装，并改用 FTC16093 Premier 的 Pedro 2.1.2 构造链。当前用法以 [示例说明](../../../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/examples/README.md) 和源码为准；下述枚举状态、telemetry 辅助类及占位抛错工厂已被替换。
+
 ## 目标
 
 为 RookieBot 增加一套只用于教学的 Auto 示例，展示：

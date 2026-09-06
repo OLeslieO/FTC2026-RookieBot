@@ -1,5 +1,7 @@
 # Servo + Pedro Pathing Auto Example Implementation Plan
 
+> Historical plan, superseded by the user's request for a simpler ordinary OpMode and one Hardware wrapper. See the [current example guide](../../../TeamCode/src/main/java/org/firstinspires/ftc/teamcode/examples/README.md); do not restore the old telemetry helpers or unconditionally throwing factory.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Add a compile-verified, disabled-by-default teaching template that demonstrates Pedro Pathing movement, Servo sequencing, and HardwareMap encapsulation without supplying robot-ready values.
