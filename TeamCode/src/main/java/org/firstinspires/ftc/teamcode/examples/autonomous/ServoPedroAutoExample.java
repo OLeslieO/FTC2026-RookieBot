@@ -23,9 +23,10 @@ public final class ServoPedroAutoExample extends OpMode {
     // TODO: 填完本文件、Hardwares 和 Constants，并完成单机构测试，再把下面的锁改成 true。
     // Constants.PEDRO_CONFIGURED 是另一道配置锁，也需要在 Pedro 参数验证完成后开启。
     private static final boolean CONFIGURATION_COMPLETE=false;
-    // 要改变开合程度，就修改这两个位置。0~1 对应舵机行程比例，不保证是 0~180 度。
-    private static final double CLOSED_POSITION=Double.NaN; // 舵机位置 0~1，不是角度
-    private static final double OPEN_POSITION=Double.NaN;
+    // 要改变开合程度，就修改这两个角度，填写 0~360 的度数；不用自己计算 0~1。
+    // 调用 setPosition 时，Hardwares.servoAngleToPosition() 会统一换算。NaN 仍表示尚未配置。
+    private static final double CLOSED_ANGLE_DEGREES=Double.NaN;
+    private static final double OPEN_ANGLE_DEGREES=Double.NaN;
     // setPosition 只发送目标，不会等待转动完成；这里填实测需要等待的秒数（大于 0）。
     private static final double SERVO_WAIT_SECONDS=Double.NaN;
     private static final double PATH_MAX_POWER=Double.NaN; // (0,1]，从低功率开始验证
@@ -100,7 +101,8 @@ public final class ServoPedroAutoExample extends OpMode {
         try {
             // 7.1 操作 Hardwares 中已声明的舵机。要换成第二个舵机，就把 servo1 改成 servo2。
             // 这里发送关闭目标后就继续走；如果必须等关闭完成再行驶，需要额外加一个计时步骤。
-            hardwares.servos.servo1.setPosition(CLOSED_POSITION);
+            // SDK 仍接收 0~1，所以只在发送指令的这一刻把角度换算成位置比例。
+            hardwares.servos.servo1.setPosition(Hardwares.servoAngleToPosition(CLOSED_ANGLE_DEGREES));
             // 7.2 参数依次是路径、功率上限、结束后是否保持终点。false 表示结束后不保持。
             // 此调用不等待行驶结束；后续通过 loop 中的 update()/isBusy() 推进和检查。
             follower.followPath(toAction,PATH_MAX_POWER,false);
@@ -127,8 +129,8 @@ public final class ServoPedroAutoExample extends OpMode {
                     // 正在去动作点：仍忙就留在 step 0，下次 loop 再检查。
                     // isBusy=false 表示 Pedro 已结束跟随（也可能触发路径结束超时），不保证实物零误差。
                     if(follower.isBusy()) break;
-                    // 跟随结束后打开舵机；要两只一起动，可在这里再加 servo2.setPosition(...)。
-                    hardwares.servos.servo1.setPosition(OPEN_POSITION);
+                    // 跟随结束后打开舵机；要两只一起动，给 servo2 也传入换算后的角度。
+                    hardwares.servos.servo1.setPosition(Hardwares.servoAngleToPosition(OPEN_ANGLE_DEGREES));
                     // 只在进入等待阶段时清零一次；若每次 loop 都清零，就永远等不到设定时间。
                     timer.reset();
                     step=1;
@@ -164,7 +166,7 @@ public final class ServoPedroAutoExample extends OpMode {
     }
 
     // 第 9 步：按 STOP 或出错时停下。ready=false 禁止后续动作，breakFollowing() 取消 Pedro 控制。
-    // 这里不自动改变舵机位置；需要停止时回位，应先确认机构安全再加入对应 setPosition()。
+    // 这里不自动改变舵机位置；需要停止时回位，应确认机构安全后用换算函数发送回位角度。
     @Override
     public void stop() {
         ready=false;

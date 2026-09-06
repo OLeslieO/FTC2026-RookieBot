@@ -93,6 +93,20 @@ public final class Hardwares {
         }
     }
 
+    /**
+     * 舵机角度换算：业务变量填 0~360 度，调用 setPosition 时用此方法转成 SDK 的 0~1。
+     * 换算公式：position=angleDegrees/360.0。例如 90→0.25、180→0.5、360→1。
+     * 用法：hardwares.servos.servo1.setPosition(Hardwares.servoAngleToPosition(angleDegrees));
+     * 360 度对应满行程，不会绕回 0；超范围或未填写的角度会报错，避免静默发出错误指令。
+     * 此映射按满行程 360 度约定；实际机械转角取决于舵机型号/设置，换算不能扩大实物行程。
+     */
+    public static double servoAngleToPosition(double angleDegrees) {
+        if(!Double.isFinite(angleDegrees)||angleDegrees<0.0||angleDegrees>360.0) {
+            throw new IllegalArgumentException("舵机角度必须是 0~360 度内的有限数值");
+        }
+        return angleDegrees/360.0;
+    }
+
     public static final class Sensors {
         // 第 10 步：传感器也按“配置名称 → 字段 → 查找”的顺序添加。
         // 本例是 Pinpoint 定位模块；将名字改为 Robot Configuration 中的实际名称。
