@@ -5,6 +5,9 @@ local.properties
 .gradle/
 **/build/
 
+# Agent development worktrees
+.worktrees/
+
 # Android Studio / IntelliJ local project state
 .idea/
 *.iml
