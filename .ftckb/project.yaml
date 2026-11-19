@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 2,
+  "kernelSchemaVersion": 2,
+  "integrationVersion": 2,
+  "team": "16093",
+  "season": "2025-2026",
+  "source": {
+    "repository": "https://github.com/lucasnotfound59/FTC-Knowledge-Bank.git",
+    "ref": "d88e3d2f6462e17ed5796f03e4a3432e423954e0",
+    "commit": "d88e3d2f6462e17ed5796f03e4a3432e423954e0",
+    "path": "tools/FTC-Knowledge-Bank"
+  },
+  "profiles": [
+    "rookiebot"
+  ],
+  "managedFiles": {
+    ".agents/skills/ftc-knowledge-bank/SKILL.md": "60631378057b5c9d01ca93cad2b5856bf29d5b6335ac45eeb0d5c8bb7323526b",
+    "AGENTS.md#ftckb": "e8d185612d809cfd3edcdf185d9d0f624cd53c635312bd2679fd3a3ce33d9844"
+  }
+}

@@ -8,6 +8,9 @@ local.properties
 # Agent development worktrees
 .worktrees/
 
+# Local FTC Knowledge Bank Python environment
+.ftckb/venv/
+
 # Android Studio / IntelliJ local project state
 .idea/
 *.iml
